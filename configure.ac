@@ -12,6 +12,7 @@ AX_CODE_COVERAGE
 LT_INIT
 
 AC_PROG_CC
+AM_PROG_AS
 
 AC_OUTPUT(Makefile src/Makefile)
 

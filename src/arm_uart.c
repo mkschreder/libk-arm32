@@ -20,22 +20,17 @@
 */
 
 #include <inttypes.h>
-#include <stdarg.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 
-#include <arch/soc.h>
+#include <utype/cbuf.h>
 
-#include <kernel/cbuf.h>
-
-#include "uart.h"
+#include "arm_uart.h"
 
 #define UART_RX_BUFFER_SIZE 64
 #define UART_TX_BUFFER_SIZE 128
 #define DEV_COUNT sizeof(_devices)/sizeof(struct uart_device)
 
-struct uart_device {
+struct arm_uart {
 	USART_TypeDef *dev; 
 	GPIO_TypeDef *gpio; 
 	int rcc_gpio; 
@@ -43,9 +38,13 @@ struct uart_device {
 	int apb_id; 
 	int out_pins, in_pins; 
 	int irq; 
+	
+	struct cbuf rx_buf, tx_buf; 
+	char rx_buffer[UART_RX_BUFFER_SIZE]; 
+	char tx_buffer[UART_TX_BUFFER_SIZE]; 
 }; 
 
-static const struct uart_device _devices[] = {
+static const struct arm_uart _devices[] = {
 	{
 		.dev = USART1, 
 		.gpio = GPIOA, 
@@ -78,24 +77,13 @@ static const struct uart_device _devices[] = {
 	}
 }; 
 
-static struct cbuf rx_buffers[DEV_COUNT]; 
-//static uint8_t rx_data[DEV_COUNT][UART_RX_BUFFER_SIZE]; 
-static struct cbuf tx_buffers[DEV_COUNT]; 
-//static uint8_t tx_data[DEV_COUNT][UART_TX_BUFFER_SIZE]; 
-
-
-int8_t uart_init(uint8_t dev_id, uint32_t baud, uint8_t *tx_buffer, uint8_t tx_size, uint8_t *rx_buffer, uint8_t rx_size){
+int8_t arm_uart_init(struct arm_uart *self, uint32_t baud, uint8_t *tx_buffer, uint8_t tx_size, uint8_t *rx_buffer, uint8_t rx_size){
 	USART_InitTypeDef usartConfig;
 	
-	uint8_t count = sizeof(_devices) / sizeof(_devices[0]); 
+	USART_TypeDef *dev = self->dev; 
 	
-	if(dev_id >= count) return -1; 
-	
-	const struct uart_device *conf = &_devices[dev_id]; 
-	USART_TypeDef *dev = _devices[dev_id].dev; 
-	
-	cbuf_init(&rx_buffers[dev_id], (char*)rx_buffer, rx_size); 
-	cbuf_init(&tx_buffers[dev_id], (char*)tx_buffer, tx_size); 
+	cbuf_init(&self->rx_buf, (char*)rx_buffer, rx_size); 
+	cbuf_init(&self->tx_buf, (char*)tx_buffer, tx_size); 
 	
 	USART_DeInit(dev); 
 	
@@ -103,10 +91,8 @@ int8_t uart_init(uint8_t dev_id, uint32_t baud, uint8_t *tx_buffer, uint8_t tx_s
 		RCC_APB2PeriphClockCmd(conf->rcc_id, ENABLE);
 	} else if(conf->apb_id == 1){
 		RCC_APB1PeriphClockCmd(conf->rcc_id, ENABLE);
-	} else {
-		return -1; 
-	}
-	
+	} 
+
 	RCC_APB2PeriphClockCmd(conf->rcc_gpio | RCC_APB2Periph_AFIO, ENABLE);
 	
 	USART_Cmd(dev, ENABLE);
@@ -148,21 +134,14 @@ int8_t uart_init(uint8_t dev_id, uint32_t baud, uint8_t *tx_buffer, uint8_t tx_s
 	return 0; 
 }
 
-void uart_deinit(uint8_t dev_id){
-	uint8_t count = sizeof(_devices) / sizeof(_devices[0]); 
-	if(dev_id >= count) return; 
-	USART_TypeDef *dev = _devices[dev_id].dev; 
-	
-	USART_DeInit(dev); 
+static void arm_uart_deinit(struct arm_uart *self){
+	USART_DeInit(self->dev); 
 }
 
-int8_t		uart_set_baudrate(uint8_t dev_id, uint32_t baud){
+static int8_t uart_set_baudrate(struct arm_uart *self, uint32_t baud){
 	USART_InitTypeDef usartConfig;
-	uint8_t count = sizeof(_devices) / sizeof(_devices[0]); 
-	if(dev_id >= count) return -1; 
-	USART_TypeDef *dev = _devices[dev_id].dev; 
 	
-	USART_Cmd(dev, DISABLE);
+	USART_Cmd(self->dev, DISABLE);
 
 	usartConfig.USART_BaudRate = baud;
 	usartConfig.USART_WordLength = USART_WordLength_8b;
@@ -171,9 +150,9 @@ int8_t		uart_set_baudrate(uint8_t dev_id, uint32_t baud){
 	usartConfig.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	usartConfig.USART_HardwareFlowControl =
 			 USART_HardwareFlowControl_None;
-	USART_Init(dev, &usartConfig);
+	USART_Init(self->dev, &usartConfig);
 	
-	USART_Cmd(dev, ENABLE);
+	USART_Cmd(self->dev, ENABLE);
 	
 	return 0; 
 }
@@ -195,21 +174,16 @@ int uart_getc(uint8_t dev_id){
 }
 #endif
 
-int8_t uart_putc(uint8_t dev_id, uint8_t ch){
-	uint8_t count = sizeof(_devices) / sizeof(_devices[0]); 
-	if(dev_id >= count) return -1; 
-	
-	USART_TypeDef *dev = _devices[dev_id].dev; 
-	
-	// ok so the policy is currently to block and wait
-	while(cbuf_is_full(&tx_buffers[dev_id])); 
+int8_t arm_uart_putc(struct arm_uart *self, uint8_t ch){
+	USART_TypeDef *dev = self->dev; 
+
+	// TODO: use a mutex	
+	while(cbuf_is_full(&self->tx_buf)); 
 	
 	USART_ITConfig(dev, USART_IT_TXE, DISABLE);
-	cbuf_put(&tx_buffers[dev_id], ch);
+	cbuf_put(&self->tx_buf, ch);
 	USART_ITConfig(dev, USART_IT_TXE, ENABLE);
 	
-	//while(!(dev->SR & USART_SR_TXE));
-	//dev->DR = ch;  
 	return 0; 
 }
 
@@ -229,51 +203,22 @@ static void USART_Handler(USART_TypeDef *dev, struct cbuf *rx_buf, struct cbuf *
 }
 
 void USART1_IRQHandler(void);
-void USART1_IRQHandler(void)
-{
-	USART_Handler(USART1, &rx_buffers[0], &tx_buffers[0]); 
-	/*
-	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET){
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-		unsigned char ch = USART_ReceiveData(USART1) & 0xff;
-		cbuf_put_isr(&rx_buffers[0], ch); 
-	}
-	if(USART_GetITStatus(USART1, USART_IT_TXE) != RESET){
-		USART_ClearITPendingBit(USART1, USART_IT_TXE);
-		if(!cbuf_is_empty(&tx_buffers[0]))
-			UART1->DR = cbuf_get(&tx_buffers[0]); 
-		else
-			USART_ITConfig(dev, USART_IT_TXE, DISABLE);
-	}*/
+void USART1_IRQHandler(void){
+	USART_Handler(USART1, &_devices[0].rx_buf, &_devices[0].tx_buf); 
 }
-
 
 void USART2_IRQHandler(void);
 void USART2_IRQHandler(void)
 {
-	USART_Handler(USART2, &rx_buffers[1], &tx_buffers[1]); 
-	/*
-	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET){
-		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-		unsigned char ch = USART_ReceiveData(USART2);
-		cbuf_put_isr(&rx_buffers[1], ch); 
-	}*/
+	USART_Handler(USART2, &_devices[1].rx_buf, &_devices[1].tx_buf); 
 }
 
 void USART3_IRQHandler(void);
 void USART3_IRQHandler(void)
 {	
-	USART_Handler(USART3, &rx_buffers[2], &tx_buffers[2]); 
-	/*if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET){
-		USART_ClearITPendingBit(USART3, USART_IT_RXNE);
-		unsigned char ch = USART_ReceiveData(USART3);
-		cbuf_put_isr(&rx_buffers[2], ch); 
-	}*/
+	USART_Handler(USART3, &_devices[2].rx_buf, &_devices[2].tx_buf); 
 }
 
-uint16_t uart_waiting(uint8_t dev_id){
-	uint8_t count = sizeof(_devices) / sizeof(_devices[0]); 
-	if(dev_id >= count) return -1; 
-	
-	return cbuf_get_waiting(&rx_buffers[dev_id]); 
+static uint16_t uart_waiting(struct arm_uart *self){
+	return cbuf_get_waiting(&self->rx_buf); 
 }

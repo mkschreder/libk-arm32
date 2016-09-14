@@ -1,5 +1,5 @@
 /**
-	This file is part of martink project.
+	Copyright (c) 2016 Martin Schröder <mkschreder.uk@gmail.com>
 
 	martink firmware project is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,12 +15,7 @@
 	along with martink firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 	Author: Martin K. Schröder
-	Email: info@fortmax.se
 	Github: https://github.com/mkschreder
 */
 
-#pragma once
-
-struct serial_device; 
-
-struct serial_device *ser arm_uart_get_default_device(void); 
+struct gpio_adapter *stm32_gpio_get_adapter(void); 

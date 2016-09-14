@@ -123,7 +123,10 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libk_arm32_stm32f10x_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libk_arm32_stm32f10x_la_OBJECTS =  \
+am__objects_1 = libk_arm32_stm32f10x_la-syscalls.lo \
+	libk_arm32_stm32f10x_la-arm_uart.lo
+am_libk_arm32_stm32f10x_la_OBJECTS = CMSIS/startup_stm32f10x_md.lo \
+	CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo \
 	f10x/libk_arm32_stm32f10x_la-init.lo \
 	f10x/libk_arm32_stm32f10x_la-misc.lo \
 	f10x/libk_arm32_stm32f10x_la-stm32f10x_adc.lo \
@@ -147,7 +150,8 @@ am_libk_arm32_stm32f10x_la_OBJECTS =  \
 	f10x/libk_arm32_stm32f10x_la-stm32f10x_spi.lo \
 	f10x/libk_arm32_stm32f10x_la-stm32f10x_tim.lo \
 	f10x/libk_arm32_stm32f10x_la-stm32f10x_usart.lo \
-	f10x/libk_arm32_stm32f10x_la-stm32f10x_wwdg.lo
+	f10x/libk_arm32_stm32f10x_la-stm32f10x_wwdg.lo \
+	$(am__objects_1)
 libk_arm32_stm32f10x_la_OBJECTS =  \
 	$(am_libk_arm32_stm32f10x_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -269,6 +273,16 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+CPPASCOMPILE = $(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CCASFLAGS) $(CCASFLAGS)
+LTCPPASCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CCAS) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CCASFLAGS) $(CCASFLAGS)
+AM_V_CPPAS = $(am__v_CPPAS_@AM_V@)
+am__v_CPPAS_ = $(am__v_CPPAS_@AM_DEFAULT_V@)
+am__v_CPPAS_0 = @echo "  CPPAS   " $@;
+am__v_CPPAS_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -330,6 +344,9 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
+CCAS = @CCAS@
+CCASDEPMODE = @CCASDEPMODE@
+CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
@@ -461,7 +478,12 @@ AM_CFLAGS = $(CODE_COVERAGE_CFLAGS) -std=gnu99 -Wall -Werror -Wno-format-y2k -W 
 
 #libk_arm32_la_SOURCES=arm_adc.c arm_dma.c arm_gpio.c arm_pwm.c arm_spi.c arm_time.c arm_twi.c arm_uart.c
 #libk_arm32_la_CFLAGS=$(AM_CFLAGS)
-libk_arm32_stm32f10x_la_SOURCES = f10x/init.c f10x/misc.c \
+LIBK_ARM32_SOURCES = syscalls.c arm_uart.c
+libk_arm32_stm32f10x_la_SOURCES = \
+CMSIS/startup_stm32f10x_md.S\
+CMSIS/system_stm32f10x.c\
+f10x/init.c\
+f10x/misc.c \
 f10x/stm32f10x_adc.c \
 f10x/stm32f10x_bkp.c \
 f10x/stm32f10x_can.c \
@@ -483,9 +505,10 @@ f10x/stm32f10x_sdio.c \
 f10x/stm32f10x_spi.c \
 f10x/stm32f10x_tim.c \
 f10x/stm32f10x_usart.c \
-f10x/stm32f10x_wwdg.c 
+f10x/stm32f10x_wwdg.c \
+$(LIBK_ARM32_SOURCES)
 
-libk_arm32_stm32f10x_la_CFLAGS = $(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32f10x_la_CFLAGS = $(AM_CFLAGS) -ICMSIS
 libk_arm32_stm32f30x_la_SOURCES = \
 f30x/stm32f30x_adc.c \
 f30x/stm32f30x_can.c \
@@ -510,7 +533,7 @@ f30x/stm32f30x_tim.c \
 f30x/stm32f30x_usart.c \
 f30x/stm32f30x_wwdg.c 
 
-libk_arm32_stm32f30x_la_CFLAGS = $(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32f30x_la_CFLAGS = $(AM_CFLAGS) -ICMSIS
 libk_arm32_stm32f37x_la_SOURCES = \
 f37x/stm32f37x_adc.c \
 f37x/stm32f37x_can.c \
@@ -536,7 +559,7 @@ f37x/stm32f37x_tim.c \
 f37x/stm32f37x_usart.c \
 f37x/stm32f37x_wwdg.c 
 
-libk_arm32_stm32f37x_la_CFLAGS = $(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32f37x_la_CFLAGS = $(AM_CFLAGS) -ICMSIS
 libk_arm32_stm32l1xx_la_SOURCES = \
 l1xx/misc.c \
 l1xx/stm32l1xx_adc.c \
@@ -565,11 +588,11 @@ l1xx/stm32l1xx_tim.c \
 l1xx/stm32l1xx_usart.c \
 l1xx/stm32l1xx_wwdg.c 
 
-libk_arm32_stm32l1xx_la_CFLAGS = $(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32l1xx_la_CFLAGS = $(AM_CFLAGS) -ICMSIS
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj
+.SUFFIXES: .S .c .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -635,6 +658,16 @@ clean-libLTLIBRARIES:
 	  echo rm -f $${locs}; \
 	  rm -f $${locs}; \
 	}
+CMSIS/$(am__dirstamp):
+	@$(MKDIR_P) CMSIS
+	@: > CMSIS/$(am__dirstamp)
+CMSIS/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) CMSIS/$(DEPDIR)
+	@: > CMSIS/$(DEPDIR)/$(am__dirstamp)
+CMSIS/startup_stm32f10x_md.lo: CMSIS/$(am__dirstamp) \
+	CMSIS/$(DEPDIR)/$(am__dirstamp)
+CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo:  \
+	CMSIS/$(am__dirstamp) CMSIS/$(DEPDIR)/$(am__dirstamp)
 f10x/$(am__dirstamp):
 	@$(MKDIR_P) f10x
 	@: > f10x/$(am__dirstamp)
@@ -864,6 +897,8 @@ libk-arm32-stm32l1xx.la: $(libk_arm32_stm32l1xx_la_OBJECTS) $(libk_arm32_stm32l1
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f CMSIS/*.$(OBJEXT)
+	-rm -f CMSIS/*.lo
 	-rm -f f10x/*.$(OBJEXT)
 	-rm -f f10x/*.lo
 	-rm -f f30x/*.$(OBJEXT)
@@ -876,6 +911,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libk_arm32_stm32f10x_la-arm_uart.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libk_arm32_stm32f10x_la-syscalls.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@CMSIS/$(DEPDIR)/libk_arm32_stm32f10x_la-system_stm32f10x.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@CMSIS/$(DEPDIR)/startup_stm32f10x_md.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f10x/$(DEPDIR)/libk_arm32_stm32f10x_la-init.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f10x/$(DEPDIR)/libk_arm32_stm32f10x_la-misc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f10x/$(DEPDIR)/libk_arm32_stm32f10x_la-stm32f10x_adc.Plo@am__quote@
@@ -972,6 +1011,30 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@l1xx/$(DEPDIR)/libk_arm32_stm32l1xx_la-stm32l1xx_usart.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@l1xx/$(DEPDIR)/libk_arm32_stm32l1xx_la-stm32l1xx_wwdg.Plo@am__quote@
 
+.S.o:
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCCAS_TRUE@	$(CPPASCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCCAS_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CPPASCOMPILE) -c -o $@ $<
+
+.S.obj:
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCCAS_TRUE@	$(CPPASCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCCAS_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CPPASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.S.lo:
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCCAS_TRUE@	$(LTCPPASCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCCAS_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(LTCPPASCOMPILE) -c -o $@ $<
+
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
@@ -995,6 +1058,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo: CMSIS/system_stm32f10x.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -MT CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo -MD -MP -MF CMSIS/$(DEPDIR)/libk_arm32_stm32f10x_la-system_stm32f10x.Tpo -c -o CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo `test -f 'CMSIS/system_stm32f10x.c' || echo '$(srcdir)/'`CMSIS/system_stm32f10x.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) CMSIS/$(DEPDIR)/libk_arm32_stm32f10x_la-system_stm32f10x.Tpo CMSIS/$(DEPDIR)/libk_arm32_stm32f10x_la-system_stm32f10x.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='CMSIS/system_stm32f10x.c' object='CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -c -o CMSIS/libk_arm32_stm32f10x_la-system_stm32f10x.lo `test -f 'CMSIS/system_stm32f10x.c' || echo '$(srcdir)/'`CMSIS/system_stm32f10x.c
 
 f10x/libk_arm32_stm32f10x_la-init.lo: f10x/init.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -MT f10x/libk_arm32_stm32f10x_la-init.lo -MD -MP -MF f10x/$(DEPDIR)/libk_arm32_stm32f10x_la-init.Tpo -c -o f10x/libk_arm32_stm32f10x_la-init.lo `test -f 'f10x/init.c' || echo '$(srcdir)/'`f10x/init.c
@@ -1163,6 +1233,20 @@ f10x/libk_arm32_stm32f10x_la-stm32f10x_wwdg.lo: f10x/stm32f10x_wwdg.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='f10x/stm32f10x_wwdg.c' object='f10x/libk_arm32_stm32f10x_la-stm32f10x_wwdg.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -c -o f10x/libk_arm32_stm32f10x_la-stm32f10x_wwdg.lo `test -f 'f10x/stm32f10x_wwdg.c' || echo '$(srcdir)/'`f10x/stm32f10x_wwdg.c
+
+libk_arm32_stm32f10x_la-syscalls.lo: syscalls.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -MT libk_arm32_stm32f10x_la-syscalls.lo -MD -MP -MF $(DEPDIR)/libk_arm32_stm32f10x_la-syscalls.Tpo -c -o libk_arm32_stm32f10x_la-syscalls.lo `test -f 'syscalls.c' || echo '$(srcdir)/'`syscalls.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libk_arm32_stm32f10x_la-syscalls.Tpo $(DEPDIR)/libk_arm32_stm32f10x_la-syscalls.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='syscalls.c' object='libk_arm32_stm32f10x_la-syscalls.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -c -o libk_arm32_stm32f10x_la-syscalls.lo `test -f 'syscalls.c' || echo '$(srcdir)/'`syscalls.c
+
+libk_arm32_stm32f10x_la-arm_uart.lo: arm_uart.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -MT libk_arm32_stm32f10x_la-arm_uart.lo -MD -MP -MF $(DEPDIR)/libk_arm32_stm32f10x_la-arm_uart.Tpo -c -o libk_arm32_stm32f10x_la-arm_uart.lo `test -f 'arm_uart.c' || echo '$(srcdir)/'`arm_uart.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libk_arm32_stm32f10x_la-arm_uart.Tpo $(DEPDIR)/libk_arm32_stm32f10x_la-arm_uart.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='arm_uart.c' object='libk_arm32_stm32f10x_la-arm_uart.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f10x_la_CFLAGS) $(CFLAGS) -c -o libk_arm32_stm32f10x_la-arm_uart.lo `test -f 'arm_uart.c' || echo '$(srcdir)/'`arm_uart.c
 
 f30x/libk_arm32_stm32f30x_la-stm32f30x_adc.lo: f30x/stm32f30x_adc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libk_arm32_stm32f30x_la_CFLAGS) $(CFLAGS) -MT f30x/libk_arm32_stm32f30x_la-stm32f30x_adc.lo -MD -MP -MF f30x/$(DEPDIR)/libk_arm32_stm32f30x_la-stm32f30x_adc.Tpo -c -o f30x/libk_arm32_stm32f30x_la-stm32f30x_adc.lo `test -f 'f30x/stm32f30x_adc.c' || echo '$(srcdir)/'`f30x/stm32f30x_adc.c
@@ -1666,6 +1750,7 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+	-rm -rf CMSIS/.libs CMSIS/_libs
 	-rm -rf f10x/.libs f10x/_libs
 	-rm -rf f30x/.libs f30x/_libs
 	-rm -rf f37x/.libs f37x/_libs
@@ -1807,6 +1892,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f CMSIS/$(DEPDIR)/$(am__dirstamp)
+	-rm -f CMSIS/$(am__dirstamp)
 	-rm -f f10x/$(DEPDIR)/$(am__dirstamp)
 	-rm -f f10x/$(am__dirstamp)
 	-rm -f f30x/$(DEPDIR)/$(am__dirstamp)
@@ -1825,7 +1912,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf f10x/$(DEPDIR) f30x/$(DEPDIR) f37x/$(DEPDIR) l1xx/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) CMSIS/$(DEPDIR) f10x/$(DEPDIR) f30x/$(DEPDIR) f37x/$(DEPDIR) l1xx/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1871,7 +1958,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf f10x/$(DEPDIR) f30x/$(DEPDIR) f37x/$(DEPDIR) l1xx/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) CMSIS/$(DEPDIR) f10x/$(DEPDIR) f30x/$(DEPDIR) f37x/$(DEPDIR) l1xx/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -15,7 +15,13 @@ AM_CFLAGS=$(CODE_COVERAGE_CFLAGS) -std=gnu99 -Wall -Werror -Wno-format-y2k -W -W
 #libk_arm32_la_SOURCES=arm_adc.c arm_dma.c arm_gpio.c arm_pwm.c arm_spi.c arm_time.c arm_twi.c arm_uart.c
 #libk_arm32_la_CFLAGS=$(AM_CFLAGS)
 
-libk_arm32_stm32f10x_la_SOURCES=f10x/init.c f10x/misc.c \
+LIBK_ARM32_SOURCES=syscalls.c arm_uart.c
+
+libk_arm32_stm32f10x_la_SOURCES=\
+CMSIS/startup_stm32f10x_md.S\
+CMSIS/system_stm32f10x.c\
+f10x/init.c\
+f10x/misc.c \
 f10x/stm32f10x_adc.c \
 f10x/stm32f10x_bkp.c \
 f10x/stm32f10x_can.c \
@@ -37,8 +43,9 @@ f10x/stm32f10x_sdio.c \
 f10x/stm32f10x_spi.c \
 f10x/stm32f10x_tim.c \
 f10x/stm32f10x_usart.c \
-f10x/stm32f10x_wwdg.c 
-libk_arm32_stm32f10x_la_CFLAGS=$(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+f10x/stm32f10x_wwdg.c \
+$(LIBK_ARM32_SOURCES)
+libk_arm32_stm32f10x_la_CFLAGS=$(AM_CFLAGS) -ICMSIS
 
 libk_arm32_stm32f30x_la_SOURCES=\
 f30x/stm32f30x_adc.c \
@@ -63,7 +70,7 @@ f30x/stm32f30x_syscfg.c \
 f30x/stm32f30x_tim.c \
 f30x/stm32f30x_usart.c \
 f30x/stm32f30x_wwdg.c 
-libk_arm32_stm32f30x_la_CFLAGS=$(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32f30x_la_CFLAGS=$(AM_CFLAGS) -ICMSIS
 
 libk_arm32_stm32f37x_la_SOURCES=\
 f37x/stm32f37x_adc.c \
@@ -89,7 +96,7 @@ f37x/stm32f37x_syscfg.c \
 f37x/stm32f37x_tim.c \
 f37x/stm32f37x_usart.c \
 f37x/stm32f37x_wwdg.c 
-libk_arm32_stm32f37x_la_CFLAGS=$(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32f37x_la_CFLAGS=$(AM_CFLAGS) -ICMSIS
 
 libk_arm32_stm32l1xx_la_SOURCES=\
 l1xx/misc.c \
@@ -118,5 +125,5 @@ l1xx/stm32l1xx_syscfg.c \
 l1xx/stm32l1xx_tim.c \
 l1xx/stm32l1xx_usart.c \
 l1xx/stm32l1xx_wwdg.c 
-libk_arm32_stm32l1xx_la_CFLAGS=$(AM_CFLAGS) -ICMSIS -DHSE_VALUE=8000000 -DF_CPU=72000000 -DSTM32F10X_MD -mcpu=cortex-m3 -mthumb
+libk_arm32_stm32l1xx_la_CFLAGS=$(AM_CFLAGS) -ICMSIS
 
